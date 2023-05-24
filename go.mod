@@ -1,3 +1,3 @@
-module github.com/Miuosz/allocation
+module github.com/miuosz/allocation
 
 go 1.20
