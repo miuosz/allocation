@@ -1,13 +1,14 @@
 package allocation
 
 import (
-	"fmt"
-	"math"
 	"time"
 )
 
+// Size represents a memory size in bytes.
+// It is a custom type based on the uint64 data type.
 type Size uint64
 
+// Predefined Size constants for common memory sizes.
 const (
 	standard = 1024
 
@@ -19,60 +20,76 @@ const (
 	PetaByte Size = TeraByte * standard
 )
 
-type Settings struct {
-	size     Size           // 1MB by default
-	count    int            // 1 by default
+type settings struct {
+	size     Size
+	amount   int
 	duration *time.Duration // nil by default
-	physical bool
+	physical bool           // false by default
 }
 
+// Allocation is a structure that represents a collection of allocated payloads.
+// It contains the allocated payloads in the form of a 2-dimensional byte slice.
+//
+// Fields:
+//   - Payload: The allocated payloads stored as a 2-dimensional byte slice.
+//     Each inner byte slice represents an individual allocation.
+//
+// Example:
+//
+//	alloc := allocation.New(10, 1*allocation.MegaByte)
+//	// Creates an allocation with 10 payloads, each of 1 megabyte in size.
+//
+//	for _, payload := range alloc.Payload {
+//	    // Process each individual payload
+//	    fmt.Println(len(payload))
+//	}
+//	// Prints the size of each allocated payload.
 type Allocation struct {
+	// Payload represents allocated payloads stored as a 2-dimensional byte slice.
 	Payload [][]byte
 }
 
-func (a Allocation) String() string {
-	return fmt.Sprintf("allocated: %d elements", len(a.Payload))
-}
-
-type Option func(s *Settings)
+type Option func(s *settings)
 
 // WithDuration specifies time to run allocations.
-func WithDuration(duration time.Duration) func(s *Settings) {
-	return func(s *Settings) {
+func WithDuration(duration time.Duration) func(s *settings) {
+	return func(s *settings) {
 		s.duration = &duration
 	}
 }
 
-// WithSize is used to specify the total amount of memory that should be allocated.
-// The specified size will be divided among the number of allocations specified by WithCount.
-// For example, if you specify 10MB as the size and 10 as the count,
-// it means that the total 10MB will be divided into ten 1MB objects.
-func WithSize(size Size) func(s *Settings) {
-	return func(s *Settings) {
-		s.size = size
-	}
-}
-
-// WithCount specifies how many allocations should be made.
-func WithCount(count int) func(s *Settings) {
-	return func(s *Settings) {
-		s.count = count
-	}
-}
-
 // WithPhysical makes allocation use physical memory.
-func WithPhysical(physical bool) func(s *Settings) {
-	return func(s *Settings) {
+func WithPhysical(physical bool) func(s *settings) {
+	return func(s *settings) {
 		s.physical = physical
 	}
 }
 
-// New causes allocation with given parameters.
-func New(opts ...Option) Allocation {
-	s := &Settings{
-		size:     MegaByte,
-		count:    1,
+// New creates multiple allocations with specified size.
+// It creates 'amount' number of allocations, each of size 'size'.
+// Additional options can be provided to customize the allocation behavior.
+//
+// Parameters:
+//   - amount: The number of allocations to create.
+//   - size: The size of each allocation. Use the 'Size' type to specify the size in bytes, kilobytes, megabytes, etc.
+//   - opts: Optional. Additional options to customize the allocation behavior. See the 'Option' type and the available options for more details.
+//
+// Returns:
+//   - Allocation: The created allocation containing the specified number of allocations of the specified size.
+//
+// Example:
+//
+//	allocation.New(10, 10*allocation.MegaByte)
+//	// Creates 10 allocations, each of 10 megabytes in size.
+//
+//	allocation.New(5, 1*allocation.KiloByte, allocation.WithPhysical(true))
+//	// Creates 5 allocations, each of 1 kilobyte in size, using physical memory.
+func New(amount int, size Size, opts ...Option) Allocation {
+	s := &settings{
+		size:     size,
+		amount:   amount,
 		duration: nil,
+		physical: false,
 	}
 
 	for _, opt := range opts {
@@ -82,18 +99,12 @@ func New(opts ...Option) Allocation {
 	return allocate(s)
 }
 
-func allocate(s *Settings) Allocation {
-	tmpSize := uint64(s.size) / uint64(s.count)
-	if tmpSize >= math.MaxInt64 {
-		panic(fmt.Sprintf("too big alocSize(%v), increase count", tmpSize))
-	}
+func allocate(s *settings) Allocation {
+	payload := make([][]byte, s.amount)
 
-	allocSize := int(tmpSize)
-
-	payload := make([][]byte, s.count)
-
-	for i := 0; i < s.count; i++ {
-		alloc := make([]byte, allocSize)
+	for i := 0; i < s.amount; i++ {
+		// TODO: add some size limit.
+		alloc := make([]byte, s.size)
 		payload[i] = alloc
 	}
 

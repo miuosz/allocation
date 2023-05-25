@@ -9,8 +9,8 @@ import (
 
 func main() {
 	allocation.New(
-		allocation.WithCount(1),
-		allocation.WithSize(10*allocation.MegaByte),
+		10,
+		allocation.MegaByte,
 	)
 
 	runtime.GC()
