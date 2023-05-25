@@ -2,6 +2,7 @@ package allocation
 
 import (
 	"fmt"
+	"math"
 	"time"
 )
 
@@ -22,14 +23,15 @@ type Settings struct {
 	size     Size           // 1MB by default
 	count    int            // 1 by default
 	duration *time.Duration // nil by default
+	physical bool
 }
 
 type Allocation struct {
-	payload [][]byte
+	Payload [][]byte
 }
 
 func (a Allocation) String() string {
-	return fmt.Sprintf("allocated: %d elements", len(a.payload))
+	return fmt.Sprintf("allocated: %d elements", len(a.Payload))
 }
 
 type Option func(s *Settings)
@@ -58,6 +60,13 @@ func WithCount(count int) func(s *Settings) {
 	}
 }
 
+// WithPhysical makes allocation use physical memory.
+func WithPhysical(physical bool) func(s *Settings) {
+	return func(s *Settings) {
+		s.physical = physical
+	}
+}
+
 // New causes allocation with given parameters.
 func New(opts ...Option) Allocation {
 	s := &Settings{
@@ -74,12 +83,22 @@ func New(opts ...Option) Allocation {
 }
 
 func allocate(s *Settings) Allocation {
-	allocSize := uint64(s.size) / uint64(s.count)
-	payload := make([][]byte, 0, s.count)
+	tmpSize := uint64(s.size) / uint64(s.count)
+	if tmpSize >= math.MaxInt64 {
+		panic(fmt.Sprintf("too big alocSize(%v), increase count", tmpSize))
+	}
+
+	allocSize := int(tmpSize)
+
+	payload := make([][]byte, s.count)
 
 	for i := 0; i < s.count; i++ {
-		alloc := make([]byte, 0, allocSize)
-		payload = append(payload, alloc)
+		alloc := make([]byte, allocSize)
+		payload[i] = alloc
+	}
+
+	if s.physical {
+		useMem(payload)
 	}
 
 	if s.duration != nil {
@@ -87,7 +106,17 @@ func allocate(s *Settings) Allocation {
 	}
 
 	return Allocation{
-		payload: payload,
+		Payload: payload,
+	}
+}
+
+func useMem(p [][]byte) {
+	for i := range p {
+		allocSize := len(p[i])
+		// Alter one byte every 4KB
+		for j := 0; j < allocSize; j += 4 << 10 {
+			p[i][j] = 1
+		}
 	}
 }
 
