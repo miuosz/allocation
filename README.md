@@ -50,7 +50,7 @@ allocation.New(
 ```go
 allocation.New(
 	allocation.WithCount(10),
-	allocation.WithSize(10*allocation.MegaByte),
+	allocation.WithSize(100*allocation.MegaByte),
 )
 ```
 
