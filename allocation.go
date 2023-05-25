@@ -5,19 +5,21 @@ import (
 	"time"
 )
 
+type Size uint64
+
 const (
 	standard = 1024
 
-	Byte     uint64 = 1024
-	KiloByte uint64 = Byte * standard
-	MegaByte uint64 = KiloByte * standard
-	GigaByte uint64 = MegaByte * standard
-	TeraByte uint64 = GigaByte * standard
-	PetaByte uint64 = TeraByte * standard
+	Byte     Size = 1
+	KiloByte Size = Byte * standard
+	MegaByte Size = KiloByte * standard
+	GigaByte Size = MegaByte * standard
+	TeraByte Size = GigaByte * standard
+	PetaByte Size = TeraByte * standard
 )
 
 type Settings struct {
-	size     uint64         // 1MB by default
+	size     Size           // 1MB by default
 	count    int            // 1 by default
 	duration *time.Duration // nil by default
 }
@@ -39,8 +41,11 @@ func WithDuration(duration time.Duration) func(s *Settings) {
 	}
 }
 
-// WithSize specifies how much memory should be allocated.
-func WithSize(size uint64) func(s *Settings) {
+// WithSize is used to specify the total amount of memory that should be allocated.
+// The specified size will be divided among the number of allocations specified by WithCount.
+// For example, if you specify 10MB as the size and 10 as the count,
+// it means that the total 10MB will be divided into ten 1MB objects.
+func WithSize(size Size) func(s *Settings) {
 	return func(s *Settings) {
 		s.size = size
 	}
@@ -69,7 +74,7 @@ func New(opts ...Option) Allocation {
 }
 
 func allocate(s *Settings) Allocation {
-	allocSize := s.size / uint64(s.count)
+	allocSize := uint64(s.size) / uint64(s.count)
 	payload := make([][]byte, 0, s.count)
 
 	for i := 0; i < s.count; i++ {
