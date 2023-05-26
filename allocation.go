@@ -23,8 +23,8 @@ const (
 type settings struct {
 	size     Size
 	amount   int
-	duration *time.Duration // nil by default
-	physical bool           // false by default
+	duration *time.Duration
+	physical bool
 }
 
 // New creates multiple allocations with specified size and options.
