@@ -8,10 +8,6 @@ Allocation is a simple library used for performing memory allocations.
 package main
 
 import (
-	"fmt"
-	"runtime"
-	"runtime/debug"
-
 	"github.com/miuosz/allocation"
 )
 
