@@ -8,10 +8,7 @@ import (
 )
 
 func main() {
-	allocation.New(
-		10,
-		allocation.MegaByte,
-	)
+	allocation.New(10, allocation.MegaByte, false, nil)
 
 	runtime.GC()
 	printMemStats()
