@@ -27,79 +27,37 @@ type settings struct {
 	physical bool           // false by default
 }
 
-// Allocation is a structure that represents a collection of allocated payloads.
-// It contains the allocated payloads in the form of a 2-dimensional byte slice.
-//
-// Fields:
-//   - Payload: The allocated payloads stored as a 2-dimensional byte slice.
-//     Each inner byte slice represents an individual allocation.
-//
-// Example:
-//
-//	alloc := allocation.New(10, 1*allocation.MegaByte)
-//	// Creates an allocation with 10 payloads, each of 1 megabyte in size.
-//
-//	for _, payload := range alloc.Payload {
-//	    // Process each individual payload
-//	    fmt.Println(len(payload))
-//	}
-//	// Prints the size of each allocated payload.
-type Allocation struct {
-	// Payload represents allocated payloads stored as a 2-dimensional byte slice.
-	Payload [][]byte
-}
-
-type Option func(s *settings)
-
-// WithDuration specifies time to run allocations.
-func WithDuration(duration time.Duration) func(s *settings) {
-	return func(s *settings) {
-		s.duration = &duration
-	}
-}
-
-// WithPhysical makes allocation use physical memory.
-func WithPhysical(physical bool) func(s *settings) {
-	return func(s *settings) {
-		s.physical = physical
-	}
-}
-
-// New creates multiple allocations with specified size.
+// New creates multiple allocations with specified size and options.
 // It creates 'amount' number of allocations, each of size 'size'.
-// Additional options can be provided to customize the allocation behavior.
 //
 // Parameters:
 //   - amount: The number of allocations to create.
 //   - size: The size of each allocation. Use the 'Size' type to specify the size in bytes, kilobytes, megabytes, etc.
-//   - opts: Optional. Additional options to customize the allocation behavior. See the 'Option' type and the available options for more details.
+//   - physical: Specifies whether to use physical memory for the allocations.
+//   - duration: Specifies the duration for which the allocations should run. Use nil for no duration.
 //
 // Returns:
-//   - Allocation: The created allocation containing the specified number of allocations of the specified size.
+//   - A 2D slice of bytes representing the allocated memory.
 //
 // Example:
 //
-//	allocation.New(10, 10*allocation.MegaByte)
+//	allocation.New(10, 10*allocation.MegaByte, false, nil)
 //	// Creates 10 allocations, each of 10 megabytes in size.
 //
-//	allocation.New(5, 1*allocation.KiloByte, allocation.WithPhysical(true))
+//	allocation.New(5, 1*allocation.KiloByte, true, nil)
 //	// Creates 5 allocations, each of 1 kilobyte in size, using physical memory.
-func New(amount int, size Size, opts ...Option) Allocation {
-	s := &settings{
+func New(amount int, size Size, physical bool, duration *time.Duration) [][]byte {
+	s := settings{
 		size:     size,
 		amount:   amount,
-		duration: nil,
-		physical: false,
-	}
-
-	for _, opt := range opts {
-		opt(s)
+		physical: physical,
+		duration: duration,
 	}
 
 	return allocate(s)
 }
 
-func allocate(s *settings) Allocation {
+func allocate(s settings) [][]byte {
 	payload := make([][]byte, s.amount)
 
 	for i := 0; i < s.amount; i++ {
@@ -116,9 +74,7 @@ func allocate(s *settings) Allocation {
 		wait(*s.duration)
 	}
 
-	return Allocation{
-		Payload: payload,
-	}
+	return payload
 }
 
 func useMem(p [][]byte) {
