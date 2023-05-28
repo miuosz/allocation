@@ -10,14 +10,21 @@ type Size uint64
 
 // Predefined Size constants for common memory sizes.
 const (
-	standard = 1024
+	Byte Size = 1
 
-	Byte     Size = 1
-	KiloByte Size = Byte * standard
-	MegaByte Size = KiloByte * standard
-	GigaByte Size = MegaByte * standard
-	TeraByte Size = GigaByte * standard
-	PetaByte Size = TeraByte * standard
+	decimalStandard      = 1000
+	KiloByte        Size = Byte * decimalStandard
+	MegaByte        Size = KiloByte * decimalStandard
+	GigaByte        Size = MegaByte * decimalStandard
+	TeraByte        Size = GigaByte * decimalStandard
+	PetaByte        Size = TeraByte * decimalStandard
+
+	binaryStandard      = 1024
+	KibiByte       Size = Byte * binaryStandard
+	MebiByte       Size = KibiByte * binaryStandard
+	GibiByte       Size = MebiByte * binaryStandard
+	TebiByte       Size = GibiByte * binaryStandard
+	PebiByte       Size = TebiByte * binaryStandard
 )
 
 // New creates multiple allocations with specified size and options.
