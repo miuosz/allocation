@@ -4,8 +4,8 @@ import "time"
 
 // NewBackground creates multiple allocations with specified size and options.
 // It creates 'amount' number of allocations, each of size 'size'.
-// In constrast to `New` allocations made by NewBackground are ready to be
-// recycled just after they're allocated - even before function returns.
+// In contrast to `New“, allocations made by `NewBackground“ are ready to be
+// recycled immediately after they are allocated, even before the function returns.
 //
 // Parameters:
 //   - amount (int): The number of allocations to be performed.
