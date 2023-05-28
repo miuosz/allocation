@@ -18,11 +18,11 @@ func printMemStats() {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
 
-	fmt.Printf("Alloc = %v MiB\n", byteToMiB(m.Alloc))
-	fmt.Printf("TotalAlloc = %v MiB\n", byteToMiB(m.TotalAlloc))
-	fmt.Printf("Sys = %v MiB\n", byteToMiB(m.Sys))
+	fmt.Printf("Alloc = %v MB\n", byteToMB(m.Alloc))
+	fmt.Printf("TotalAlloc = %v MB\n", byteToMB(m.TotalAlloc))
+	fmt.Printf("Sys = %v MB\n", byteToMB(m.Sys))
 }
 
-func byteToMiB(b uint64) uint64 {
-	return b / 1024 / 1024
+func byteToMB(b uint64) uint64 {
+	return b / 1000 / 1000
 }
