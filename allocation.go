@@ -20,13 +20,6 @@ const (
 	PetaByte Size = TeraByte * standard
 )
 
-type settings struct {
-	size     Size
-	amount   int
-	duration *time.Duration
-	physical bool
-}
-
 // New creates multiple allocations with specified size and options.
 // It creates 'amount' number of allocations, each of size 'size'.
 //
@@ -47,44 +40,25 @@ type settings struct {
 //	allocation.New(5, 1*allocation.KiloByte, true, nil)
 //	// Creates 5 allocations, each of 1 kilobyte in size, using physical memory.
 func New(amount int, size Size, physical bool, duration *time.Duration) [][]byte {
-	s := settings{
-		size:     size,
-		amount:   amount,
-		physical: physical,
-		duration: duration,
-	}
+	// TODO: add some size limit.
+	payload := make([][]byte, amount)
 
-	return allocate(s)
-}
-
-func allocate(s settings) [][]byte {
-	payload := make([][]byte, s.amount)
-
-	for i := 0; i < s.amount; i++ {
-		// TODO: add some size limit.
-		alloc := make([]byte, s.size)
+	for i := 0; i < amount; i++ {
+		alloc := make([]byte, size)
 		payload[i] = alloc
 	}
 
-	if s.physical {
-		useMem(payload)
+	if physical {
+		for i := range payload {
+			useMem(payload[i])
+		}
 	}
 
-	if s.duration != nil {
-		wait(*s.duration)
+	if duration != nil {
+		wait(*duration)
 	}
 
 	return payload
-}
-
-func useMem(p [][]byte) {
-	for i := range p {
-		allocSize := len(p[i])
-		// Alter one byte every 4KB
-		for j := 0; j < allocSize; j += 4 << 10 {
-			p[i][j] = 1
-		}
-	}
 }
 
 func wait(d time.Duration) {
